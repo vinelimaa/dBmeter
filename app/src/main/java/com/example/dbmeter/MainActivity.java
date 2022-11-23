@@ -1,25 +1,24 @@
 package com.example.dbmeter;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -40,28 +39,7 @@ public class MainActivity extends Activity {
         stopButton = (Button) findViewById(R.id.button2);
 
         if(checkPermissionFromDevice()){
-            startButton.setEnabled(false);
-            stopButton.setEnabled(true);
-            //Creating file
-            File dir = Environment.getExternalStorageDirectory();
-            try {
-                audiofile = File.createTempFile("sound", ".3gp", dir);
-            } catch (IOException e) {
-                Log.e(TAG, "external storage access error");
-                return;
-            }
-            //Creating MediaRecorder and specifying audio source, output format, encoder & output format
-            recorder = new MediaRecorder();
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            recorder.setOutputFile(audiofile.getAbsolutePath());
-            try {
-                recorder.prepare();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            recorder.start();
+
         }
         else{
             requestPermissions();
@@ -96,27 +74,39 @@ public class MainActivity extends Activity {
     }
 
 
-//    public void startRecording(View view) throws IOException {
-//        startButton.setEnabled(false);
-//        stopButton.setEnabled(true);
-//        //Creating file
-//        File dir = Environment.getExternalStorageDirectory();
-//        try {
-//            audiofile = File.createTempFile("sound", ".3gp", dir);
-//        } catch (IOException e) {
-//            Log.e(TAG, "external storage access error");
-//            return;
-//        }
-//        //Creating MediaRecorder and specifying audio source, output format, encoder & output format
-//        recorder = new MediaRecorder();
-//        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-//        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-//        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-//        recorder.setOutputFile(audiofile.getAbsolutePath());
-//        recorder.prepare();
-//        recorder.start();
-//
-//    }
+    public void startRecording(View view) throws IOException {
+        startButton.setEnabled(false);
+        stopButton.setEnabled(true);
+
+        final File path =
+                Environment.getExternalStoragePublicDirectory
+                        (
+                                Environment.DIRECTORY_DCIM + "/viniRecord/"
+                        );
+
+        // Make sure the sound directory exists.
+        if(!path.exists())
+        {
+            path.mkdirs();
+        }
+        try {
+            audiofile = File.createTempFile("sound", ".3gp", path);
+        } catch (IOException e) {
+            Log.e(TAG, "external storage access error");
+            return;
+        }
+        Toast.makeText(this, "criando arquivo... ", Toast.LENGTH_LONG).show();
+        //Creating MediaRecorder and specifying audio source, output format, encoder & output format
+        recorder = new MediaRecorder();
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setAudioSamplingRate(44100);
+        recorder.setAudioEncodingBitRate(320000);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        recorder.setOutputFile(audiofile.getAbsolutePath());
+        recorder.prepare();
+        recorder.start();
+    }
 
     public void stopRecording(View view) {
         startButton.setEnabled(true);
