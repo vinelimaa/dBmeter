@@ -9,7 +9,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioAttributes;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat;
 
 public class MainActivity extends Activity {
     MediaRecorder recorder;
+    MediaPlayer mediaPlayer;
     File audiofile = null;
     static final String TAG = "MediaRecording";
     Button startButton,stopButton;
@@ -35,8 +36,14 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mediaPlayer = null;
+
         startButton = (Button) findViewById(R.id.button1);
         stopButton = (Button) findViewById(R.id.button2);
+        startButton.setVisibility(View.VISIBLE);
+        stopButton.setVisibility(View.INVISIBLE);
+
 
         if(checkPermissionFromDevice()){
 
@@ -75,16 +82,18 @@ public class MainActivity extends Activity {
 
 
     public void startRecording(View view) throws IOException {
+        startButton.setVisibility(View.INVISIBLE);
         startButton.setEnabled(false);
-        stopButton.setEnabled(true);
+        stopButton.setVisibility(View.VISIBLE);
 
+        //Caminho onde será armazenado o arquivo de gravação
         final File path =
                 Environment.getExternalStoragePublicDirectory
                         (
-                                Environment.DIRECTORY_DCIM + "/viniRecord/"
+                                Environment.DIRECTORY_DCIM + "/OutVoice/"
                         );
 
-        // Make sure the sound directory exists.
+        // Certificando-se que o diretório existe.
         if(!path.exists())
         {
             path.mkdirs();
@@ -95,8 +104,7 @@ public class MainActivity extends Activity {
             Log.e(TAG, "external storage access error");
             return;
         }
-        Toast.makeText(this, "criando arquivo... ", Toast.LENGTH_LONG).show();
-        //Creating MediaRecorder and specifying audio source, output format, encoder & output format
+        //Criando MediaRecorder e especificando a fonte do áudio, formato de saída e codificador
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setAudioSamplingRate(44100);
@@ -106,15 +114,18 @@ public class MainActivity extends Activity {
         recorder.setOutputFile(audiofile.getAbsolutePath());
         recorder.prepare();
         recorder.start();
+        Toast.makeText(this, "Gravando...", Toast.LENGTH_SHORT).show();
     }
 
     public void stopRecording(View view) {
+        startButton.setVisibility(View.VISIBLE);
+        stopButton.setVisibility(View.INVISIBLE);
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
-        //stopping recorder
+        //parando o gravador
         recorder.stop();
         recorder.release();
-        //after stopping the recorder, create the sound file and add it to media library.
+        //Após parar o gravador, cria o arquivo de som e adiciona a biblioteca.
         addRecordingToMediaLibrary();
     }
 
